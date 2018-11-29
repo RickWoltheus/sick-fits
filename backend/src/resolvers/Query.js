@@ -21,6 +21,9 @@ const Query = {
     },
     async users(parent, args, ctx, info) {
         // 1. check if they are loggedin
+        if(!ctx.request.userId) {
+            throw new Error('no userId given(not loggedin)')
+        }
 
         // 2. check if user has the permissions to query all users
         hasPermissions(ctx.request.user, ['ADMIN', 'PERMISSIONUPDATE'])

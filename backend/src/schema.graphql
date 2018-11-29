@@ -29,3 +29,5 @@ type User {
     email: String!
     permissions: [Permission!]!
 }
+
+# resolvers in query.js
