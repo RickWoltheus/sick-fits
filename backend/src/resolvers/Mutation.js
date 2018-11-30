@@ -243,6 +243,28 @@ const Mutations = {
                 } 
             }
         }, info)
+    },
+    async removeFromCart(partent, args, ctx, info) {
+        // find item
+        const cartItem = await ctx.db.query.cartItem({
+            where: {
+                id: args.id,
+            }
+        }, `{id, user { id }}`)
+
+        if (!cartItem) {
+            throw new Error('No cartItem found')
+        }
+        // is it his item?
+        if(cartItem.user.id !== ctx.request.userId) {
+            throw new Error(' you have no permissions ')
+        }
+
+        // delete that 
+
+        return ctx.db.mutation.deleteCartItem({
+            where: {id: args.id}
+        }, info)
     }
 };
 

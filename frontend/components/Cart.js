@@ -6,6 +6,9 @@ import SickButton from './styles/SickButton'
 import {Query, Mutation} from 'react-apollo'
 import gql from 'graphql-tag'
 import User from './User'
+import CartItem from './CartItem';
+import calcTotalPrice from '../lib/calcTotalPrice'
+import formatMoney from '../lib/formatMoney'
 
 const LOCAL_STATE_QUERY = gql`
     query {
@@ -44,13 +47,11 @@ const Cart = () => {
                                         </header>
                                         <ul>
                                             {me.cart.map(cartItem => 
-                                                <li>
-                                                    {cartItem.id}
-                                                </li>
+                                                <CartItem key={cartItem.id} cartItem={cartItem} />
                                             )}
                                         </ul>
                                         <footer>
-                                            <p>$10.10</p>
+                                            <p>{formatMoney(calcTotalPrice(me.cart))}</p>
                                             <SickButton>
                                                 checkout
                                             </SickButton>

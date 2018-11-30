@@ -22,9 +22,9 @@ class addToCart extends React.Component {
                 }}
                 refetchQueries={[{ query: CURRENT_USER_QUERY }]}
             >
-                {(addToCart) => (
-                    <button onClick={addToCart}>
-                        Add to cart
+                {(addToCart, {error, loading}) => (
+                    <button disabled={loading} onClick={addToCart}>
+                        Add{loading ? 'ing' : ''} to cart
                     </button>
                 )}
             </Mutation>
