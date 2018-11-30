@@ -15,14 +15,14 @@ class DeleteItem extends Component {
     
     handleDeletePress = async (deleteItem) => {
         if (confirm('you sure?')) {
-            await deleteItem()
+            await deleteItem().catch(err => {
+                alert(err.message)
+            })
         }
     }
 
     update = (cache, payload) => {
         const data = cache.readQuery({ query: ALL_ITEMS_QUERY })
-        console.log(cache, payload)
-        console.log(data)
         data.items = data.items.filter(item => item.id !== payload.data.deleteItem.id)
         cache.writeQuery({query: ALL_ITEMS_QUERY, data})
         

@@ -35,6 +35,7 @@ class CreateItem extends Component {
         image: '',
         largeImage: '',
         price: 0,
+        loadingImage: false,
     }
 
     handleChange = e => {
@@ -49,13 +50,17 @@ class CreateItem extends Component {
         data.append('file', files[0]);
         data.append('upload_preset', 'rikkert13')
 
+        this.setState({loadingImage: true})
+
         const res = await fetch(
-            'https://api.cloudinary.com/v1_1/rick-woltheus/image/uploadd',
+            'https://api.cloudinary.com/v1_1/rick-woltheus/image/upload',
             {
                 method: 'POST',
                 body: data
             }
         )
+
+        this.setState({loadingImage: false})
 
         //: TODO: error state if cloudinary is unverified or something
         const file = await res.json()
@@ -133,7 +138,7 @@ class CreateItem extends Component {
                                 onChange={this.handleChange}
                                 />
                             </label>  
-                            <button type='submit'>Submit</button>
+                            <button disabled={this.state.loadingImage} type='submit'>Submit</button>
                         </fieldset>
                     </Form>
                 )}
