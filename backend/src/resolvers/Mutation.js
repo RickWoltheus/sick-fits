@@ -4,6 +4,7 @@ const { randomBytes } = require('crypto')
 const { promisify } = require('util')
 const { transport, makeANiceEmail } = require('../mail')
 const {hasPermission} = require('./../utils')
+const stripe = require('../stripe')
 
 const Mutations = {
     async createItem(parent, args, ctx, info) {
@@ -265,7 +266,80 @@ const Mutations = {
         return ctx.db.mutation.deleteCartItem({
             where: {id: args.id}
         }, info)
+    },
+    async createOrder(parent, args, ctx, info) {
+        // 1. Query the current user with cart and make sure they are signed in
+        const {userId} = ctx.request
+        if (!userId) throw new Error('you must be signed in to complete order')
+        
+        const user = await ctx.db.query.user(
+            {where: { id: userId }},
+            `{
+                id
+                name
+                email
+                cart {
+                    id
+                    quantity
+                    item {
+                        title
+                        price
+                        id
+                        description
+                        image
+                        largeImage
+                    }
+                }
+            }`,
+            info
+        )
+
+        // 2. recalculate the total price, because if i get the price from the frontend it is hackable
+        const amount = user.cart.filter(cartItem => cartItem.item !== null).reduce((tally, cartItem) => tally + cartItem.item.price * cartItem.quantity, 0)
+        console.log(`charge for ${amount}`)
+
+        // 3. create Stripe charge
+        const charge = await stripe.charges.create({
+            amount,
+            currency: 'USD',
+            source: args.token
+        })
+
+
+        // 4. convert cart items to order items
+        const orderItems = user.cart.map(cartItem => {
+            const orderItem = {
+                ...cartItem.item,
+                quantity: cartItem.quantity,
+                user: { connect: {id: userId}},
+            }
+            delete orderItem.id
+            return orderItem
+        })
+
+        // 5. create order in database
+        const order = await ctx.db.mutation.createOrder({
+            data: {
+                total: charge.amount,
+                charge: charge.id,
+                items: { create: orderItems }, // prisma creates it for us in one query
+                user: {connect: {id: userId }} // connect relation to current user
+            }
+        })
+
+        // 6. clean user cart
+        const cartItemIds = user.cart.map(cartItem => cartItem.id)
+        await ctx.db.mutation.deleteManyCartItems({
+            where: {
+                id_in: cartItemIds // with id_in prisma deletes all id's in array for us
+            }
+        })
+
+        // 7. return order to client
+        return order
     }
 };
+
+
 
 module.exports = Mutations;
