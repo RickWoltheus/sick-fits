@@ -327,7 +327,7 @@ const Mutations = {
             }
         })
 
-        // 6. clean user cart
+        // 6. clean user cart, because we dont need it
         const cartItemIds = user.cart.map(cartItem => cartItem.id)
         await ctx.db.mutation.deleteManyCartItems({
             where: {
