@@ -38,7 +38,6 @@ class OrderPage extends Component {
     }
 
     render() {
-        console.log(this.props.id)
         return (
             <Query query={SINGLE_ORDER_QUERY} variables={{id: this.props.id}}>
             {({data, error, loading}) => {

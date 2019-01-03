@@ -50,6 +50,21 @@ const Query = {
 
         //4. return to client
         return order
+    },
+    async orders(parent, args, ctx, info) {
+        const userId = ctx.request.userId
+        //1. check if user is loggedin
+        if(!userId) {
+            throw new Error('no userId given(not loggedin)')
+        }
+        //2. return all orders
+        return ctx.db.query.orders({
+            where: {
+                user: {
+                    id: userId
+                }
+            }
+        }, info)
     }
 };
 
